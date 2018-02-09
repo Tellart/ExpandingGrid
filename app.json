@@ -1,0 +1,59 @@
+{
+	"metadata": {
+		"type": "App"
+	},
+	"project": {
+		"gammaInput": false,
+		"gammaOutput": false,
+		"shadows": true,
+		"vr": false
+	},
+	"camera": {
+		"metadata": {
+			"version": 4.5,
+			"type": "Object",
+			"generator": "Object3D.toJSON"
+		},
+		"object": {
+			"uuid": "64B7B892-E4FF-41D5-9DEA-A894350E43DF",
+			"type": "PerspectiveCamera",
+			"name": "Camera",
+			"matrix": [0.707107,0,-0.707107,0,-0.235702,0.942809,-0.235702,0,0.666667,0.333333,0.666667,0,20,10,20,1],
+			"fov": 50,
+			"zoom": 1,
+			"near": 0.01,
+			"far": 1000,
+			"focus": 10,
+			"aspect": 1.269406,
+			"filmGauge": 35,
+			"filmOffset": 0
+		}
+	},
+	"scene": {
+		"metadata": {
+			"version": 4.5,
+			"type": "Object",
+			"generator": "Object3D.toJSON"
+		},
+		"object": {
+			"uuid": "245354BC-41BB-44AA-9D99-3C61C93F9FD1",
+			"type": "Scene",
+			"name": "Scene",
+			"matrix": [1,0,0,0,0,1,0,0,0,0,1,0,0,0,0,1],
+			"background": 0,
+			"fog": {
+				"type": "Fog",
+				"color": 11184810,
+				"near": 0.1,
+				"far": 82.98
+			}
+		}
+	},
+	"scripts": {
+		"245354BC-41BB-44AA-9D99-3C61C93F9FD1": [
+			{
+				"name": "",
+				"source": "var orbitcontrols = document.createElement('script');\nvar controls = null;\norbitcontrols.src = \"https://threejs.org/examples/js/controls/OrbitControls.js\";\norbitcontrols.onload = function () {\n    if (!controls && THREE.OrbitControls) controls = new THREE.OrbitControls ( camera,renderer.domElement );\n};\ndocument.head.appendChild(orbitcontrols);\n\n//\n// controls = new THREE.OrbitControls( camera, renderer.domElement );\n// controls.addEventListener( 'change', render );\n// controls.enableZoom = false;\nvar worldAxis = new THREE.AxesHelper(20);\n// scene.add(worldAxis);\nvar geometry = new THREE.BoxBufferGeometry( 10, 10, 10 );\ngeometry.applyMatrix( new THREE.Matrix4().makeTranslation(5, 5, 5) );\nvar material = new THREE.MeshBasicMaterial( {color: 0x00ff00} );\nvar cube = new THREE.Mesh( geometry, material );\n// scene.add( cube );\n\nfunction cubeGrid(_cubeSize, _volumeSize){\n    this.boxGroup = new THREE.Group();\n    var cubeSize = _cubeSize? _cubeSize: 10;\n    var volumeSize = _volumeSize? _volumeSize: 10;\n    var scaleFactor = 0.01;\n    this.geometry = new THREE.BoxBufferGeometry( cubeSize, cubeSize, cubeSize );\n\n    this.geo = new THREE.EdgesGeometry( this.geometry ); // or WireframeGeometry( geometry )\n    this.geo.applyMatrix( new THREE.Matrix4().makeTranslation(_cubeSize/2, _cubeSize/2, _cubeSize/2) );\n    this.mat = new THREE.LineBasicMaterial( { color: 0xffffff, linewidth: 10 } );\n    this.mat.transparent = true;\n    this.mat.opacity = 0;\n    this.cube = new THREE.LineSegments( this.geo, this.mat );\n\n\n    for (var i = -volumeSize/2; i < volumeSize/2; i++) {\n        for (var p = -volumeSize/2; p < volumeSize/2; p++) {\n            for (var t= -volumeSize/2; t < volumeSize/2; t++) {\n                var copyCube = this.cube.clone();\n\n                copyCube.position.x = i*cubeSize;\n                copyCube.position.y = p*cubeSize;\n                copyCube.position.z = t*cubeSize;\n                // copyCube.setPivotPoint(new THREE.Vector3(2.5, 2.5, 2.5 ) );\n                this.boxGroup.add(copyCube);\n            }\n        }\n    }\n    this.update = function(){\n        this.boxGroup.scale.add(new THREE.Vector3(scaleFactor, scaleFactor, scaleFactor) );\n\n        // this.mat.opacity =Math.abs( Math.cos( ( (this.boxGroup.scale.x )/ this.mapOpacity ) ) );\n\n\n        // this.mat.opacity =Math.abs( Math.cos( this.boxGroup.scale.x /2) );\n        if(this.boxGroup.scale.x > this.scaleReset){\n            var delta = (this.scaleReset * this.mapOpacity) - this.scaleReset;\n            var d = (this.boxGroup.scale.x - this.scaleReset)/delta;\n\n            this.mat.opacity -= d;\n            console.log(\"Opacity \",d);\n        }else {\n            this.mat.opacity = this.mat.opacity < 1 ? this.mat.opacity += 0.002 : 1;\n            // console.log(\"\\t opacity\",this.mat.opacity);\n        }\n\n\n        return this.boxGroup.scale.x;\n    }\n    this.mapOpacity = 2;\n    this.scaleReset = 10;\n    this.opacity = this.boxGroup.children[0].material.opacity;\n    this.scale = this.boxGroup.scale.x;\n\n    this.remove = function(){\n        scene.remove( this.boxGroup );\n    }\n    this.add = function(){\n        scene.add( this.boxGroup );\n    }\n\n}\n\n\n// var grid1 = new cubeGrid();\n// var grid2 =new cubeGrid();\n//grid1.add();\nvar foo = 1.5;\nvar i = 0;\nvar grids = [];\ngrids.push(new cubeGrid(2,5));\ngrids[i].mapOpacity = foo;\n\n\n// for (var i = 0; i < 10; i++) {\n//     grids.push(new cubeGrid(10));\n//     grids[i].mapOpacity = 2.2;\n// }\n\n\nfunction update( event ) {\n    controls.update();\n    grids[i].add();\n    var scale =    grids[i].update();\n    console.log(scale);\n    if(scale > 10){\n        grids.push(new cubeGrid(2,5));\n        grids[i+1].mapOpacity = foo;\n        grids[i+1].add();\n        grids[i+1].update();\n        if (    scale > (grids[i].scaleReset * grids[i].mapOpacity )){\n            console.log(\"INC I\", i);\n                grids[i].remove();\n                i++;\n        }\n    }\n}\nfunction render() {\n    renderer.render( scene, camera );\n}"
+			}]
+	}
+}
